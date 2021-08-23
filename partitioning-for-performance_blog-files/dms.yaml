@@ -28,8 +28,9 @@ Metadata:
       - TgtDBPassword
 Parameters:
   ReplInstanceType:
-    Default: dms.r4.2xlarge
+    Default: dms.t3.medium
     AllowedValues:
+        - dms.t3.medium
         - dms.c4.2xlarge
         - dms.c4.4xlarge
         - dms.r4.2xlarge
