@@ -27,7 +27,7 @@ Setup Instructions:
 Cleanup:
 
 1. on Cloud9, run cleanup.sh to remove dms instance and cloudformation
-2. on Cloudformation console, delete database cloudfomration to remove database and other VPC related objects
+2. on Cloudformation console, delete database cloudformation to remove database and other VPC related objects
 
 
 ## Security
