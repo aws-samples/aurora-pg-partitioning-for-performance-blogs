@@ -3,10 +3,11 @@
 
 Setup Instructions:
 
-1. Run CloudFormation db.yaml to create Aurora database in private database
+1. Run CloudFormation db.yaml to create Aurora database in private VPC
 2. Go to output of Cloudformation and click to Connect to Cloud 9 instance
 3. Checkout this repo in Cloud 9 to get script and data for the demo
-4. Run the following script
+4. Run the following script in this order to setup sample database and partition the table
+
     1. 1-install_prereq.sh: This will install psql client and jq
     2. 2-db-bootstrap.sh: This script will install schema and load sample data
     3. 3-create-partitoned-table.sh:  This script will create Partitioned table in new schema (data_mart_new)
@@ -15,12 +16,13 @@ Setup Instructions:
     6. 6-verify-count.sh: This script will display count of data from source and destination table
     7. 7-create-index.sh: This script will create post full load index creation 
 
-    At this point, you have data in sync between source and destination schema. Next you need to swap the table to switch to Partitioned table. ( this process will require brief outage)
+    At this point, you have data in sync between source and destination schema. Next you need to swap the table to switch to Partitioned table. (this process will require brief outage)
 
     Ensure application writing to this table is down 
-    8.  8-stop-replication-task.sh: onnce replication is caught up, stop replication task
-    9.  9-swap_table.sh : use this script to swap table 
-    10. 10-disable-logical-replication.s : use this script to disable logical replication.
+
+1. 8-stop-replication-task.sh: once replication is caught up, stop replication task
+2. 9-swap_table.sh : use this script to swap table 
+3. 10-disable-logical-replication.s : use this script to disable logical replication.
 
 Cleanup:
 
