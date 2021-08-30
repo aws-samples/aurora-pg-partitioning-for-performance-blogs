@@ -4,13 +4,6 @@ export AURORA_DB_CFSTACK_NAME="mydb"
 export AWS_DEFAULT_REGION="us-east-1"
 echo "DB stack name is:" $AURORA_DB_CFSTACK_NAME
 
-echo "Enabling logical replication..."
-CLUSTER_PARAM_GROUP=$(aws rds describe-db-clusters --db-cluster-identifier "aurora-db" | jq -r '.DBClusters[].DBClusterParameterGroup')
-DB_INSTANCE_IDENTIFIER=$(aws rds describe-db-clusters --db-cluster-identifier "aurora-db" | jq -r '.DBClusters[].DBClusterMembers[].DBInstanceIdentifier')
-
-aws rds modify-db-cluster-parameter-group --db-cluster-parameter-group-name $CLUSTER_PARAM_GROUP --parameters "ParameterName=rds.logical_replication,ParameterValue=1,ApplyMethod=pending-reboot"
-
-aws rds reboot-db-instance --db-instance-identifier $DB_INSTANCE_IDENTIFIER
 
 SrcRDSEndPoint=$(aws cloudformation describe-stacks --stack-name $AURORA_DB_CFSTACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey=="RDSEndPoint") | .OutputValue')
 TgtRDSEndPoint=$(aws cloudformation describe-stacks --stack-name $AURORA_DB_CFSTACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey=="RDSEndPoint") | .OutputValue')
@@ -88,27 +81,3 @@ aws dms create-replication-task --replication-task-identifier ${task_identifier}
 
 DMS_TASK_ARN1=$(aws dms describe-replication-tasks | jq -r  '.ReplicationTasks[]|select(.ReplicationTaskIdentifier=="dms-task-partitioning")|.ReplicationTaskArn')
 echo "Replication task ARN:" $DMS_TASK_ARN1
-#aws dms describe-replication-tasks --filters Name=replication-instance-arn,Values=${DMSREP_INSTANCE_ARN} --query "ReplicationTasks[:].{ReplicationTaskIdentifier:ReplicationTaskIdentifier,ReplicationTaskArn:ReplicationTaskArn,ReplicationTaskStatus:Status,ReplicationTFullLoadPercent:ReplicationTaskStats.FullLoadProgressPercent}" --output table
-
-#######
-#REPLICATION_TASK_STATUS=""
-#while [ "$REPLICATION_TASK_STATUS" != "ready" ];
-#do
-#  echo "waiting for replication task to be created"
-#  REPLICATION_TASK_STATUS=$(aws dms describe-replication-tasks --filters Name=replication-instance-arn,Values=${DMSREP_INSTANCE_ARN} --query "ReplicationTasks[:].{ReplicationTaskIdentifier:ReplicationTaskIdentifier,ReplicationTaskArn:ReplicationTaskArn,ReplicationTaskStatus:Status,ReplicationTFullLoadPercent:ReplicationTaskStats.FullLoadProgressPercent}" | jq -r  '.[].ReplicationTaskStatus')
-#  echo "Replication task status is": $REPLICATION_TASK_STATUS
-#  sleep 10;
-#done
-
-#echo "Start replication task"
-
-#aws dms start-replication-task --replication-task-arn ${DMS_TASK_ARN1} --start-replication-task-type start-replication
-#
-#echo "Waiting on replication task to start"
-#sleep 60;
-
-#echo "Check status of replication task"
-
-#aws dms describe-replication-tasks --filters Name=replication-instance-arn,Values=${DMSREP_INSTANCE_ARN} --query "ReplicationTasks[:].{ReplicationTaskIdentifier:ReplicationTaskIdentifier,ReplicationTaskArn:ReplicationTaskArn,ReplicationTaskStatus:Status,ReplicationTFullLoadPercent:ReplicationTaskStats.FullLoadProgressPercent}" --output table
-
-#####

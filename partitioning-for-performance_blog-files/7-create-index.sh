@@ -14,8 +14,6 @@ export SrcDBPassword="auradmin"
 export TgtDBUsername="pgadmin"
 export TgtDBPassword="auradmin"
 
-
-
 sed -i 's/ONLY//g' data_mart.events-post-schema.sql
 
 sed -i 's/data_mart.events/data_mart_new.events/g' data_mart.events-post-schema.sql

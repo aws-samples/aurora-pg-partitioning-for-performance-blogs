@@ -20,6 +20,8 @@ export TgtDBPassword="auradmin"
 
 psql postgres://$SrcDBUsername:$SrcDBPassword@$SrcRDSEndPoint -c"create schema data_mart_new;"
 psql postgres://$SrcDBUsername:$SrcDBPassword@$SrcRDSEndPoint -f data_mart.events-pre-schema.sql
+
+echo "Using pgpartman to create partitioned tables"
 psql postgres://$SrcDBUsername:$SrcDBPassword@$SrcRDSEndPoint -c"CREATE SCHEMA partman;CREATE EXTENSION pg_partman WITH SCHEMA partman;"
 psql postgres://$SrcDBUsername:$SrcDBPassword@$SrcRDSEndPoint -c"SELECT partman.create_parent( p_parent_table => 'data_mart_new.events', \
 p_control => 'created_at', \
