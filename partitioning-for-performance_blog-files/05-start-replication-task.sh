@@ -16,10 +16,9 @@ then
     printf "The AWS DMS stack var isn't set. Please use -s to set this stack, and ensure it's already completed sucessfully.\n"
     exit 1
 else
-    printf "The AWS DMS Stack is set, continuing.\n"
+    printf "The AWS Stack is set, continuing.\n"
 fi
 
-# Check that region var is set
 if [ -z $AWS_DEFAULT_REGION ]
 then
     printf "The AWS default region var isn't set. Please use -r to set this stack.\n"
@@ -27,6 +26,10 @@ then
 else
     printf "The AWS default region is set, continuing.\n"
 fi
+
+##Mainline
+
+#/bin/bash
 
 #Set variable to replication instance arn
 DMSREP_INSTANCE_ARN=$(aws cloudformation describe-stacks --stack-name $AWSDMS_CFSTACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey=="ReplicationInstanceArn") | .OutputValue')
@@ -54,4 +57,5 @@ sleep 60;
 echo "Check status of replication task"
 
 aws dms describe-replication-tasks --filters Name=replication-instance-arn,Values=${DMSREP_INSTANCE_ARN} --query "ReplicationTasks[:].{ReplicationTaskIdentifier:ReplicationTaskIdentifier,ReplicationTaskArn:ReplicationTaskArn,ReplicationTaskStatus:Status,ReplicationTFullLoadPercent:ReplicationTaskStats.FullLoadProgressPercent}" --output table
+
 
