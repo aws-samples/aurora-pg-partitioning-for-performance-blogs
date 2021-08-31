@@ -1,6 +1,32 @@
-#/bin/bash
+#!/bin/bash
 
-export AWSDMS_CFSTACK_NAME="DMSRepforBlog"
+unset AWS_DEFAULT_REGION
+
+while getopts 's:r:ch' flag; do
+  case "${flag}" in
+    s) AWSDMS_CFSTACK_NAME="${OPTARG}" ;;
+    r) AWS_DEFAULT_REGION="${OPTARG}" ;;
+    *) error "Unexpected option ${flag}" ;;
+  esac
+done
+
+# Check that region var is set
+if [ -z $AWSDMS_CFSTACK_NAME ]
+then
+    printf "The AWS DMS stack var isn't set. Please use -s to set this stack, and ensure it's already completed sucessfully.\n"
+    exit 1
+else
+    printf "The AWS DMS Stack is set, continuing.\n"
+fi
+
+# Check that region var is set
+if [ -z $AWS_DEFAULT_REGION ]
+then
+    printf "The AWS default region var isn't set. Please use -r to set this stack.\n"
+    exit 1
+else
+    printf "The AWS default region is set, continuing.\n"
+fi
 
 #Set variable to replication instance arn
 DMSREP_INSTANCE_ARN=$(aws cloudformation describe-stacks --stack-name $AWSDMS_CFSTACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey=="ReplicationInstanceArn") | .OutputValue')
