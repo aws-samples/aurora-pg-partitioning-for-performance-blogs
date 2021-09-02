@@ -1,20 +1,42 @@
 #!/bin/bash
 
-unset AWS_DEFAULT_REGION
+help () {
 
-while getopts 's:r:d:ch' flag; do
+printf "Script: 04-setup_dms.sh\n"
+printf "Usage: 04-setup_dms.sh [ -s ] [ -r ] [ -d ] [ -h ] \n"
+printf " -- \nWhere: \n"
+printf "   -s  The inital AWS Stack name which is to create the vpc, subnet, and Aurora cluster. \n"
+printf "       Whatever value is set when running script 01-install_prereq.sh is what should be retained\n"
+printf "       for the rest of the demo scripts. This flag can be avoided if AURORA_DB_CFSTACK_NAME is \n"
+printf "       set as an environment variable. \n"
+printf "   -r  The AWS Region we're running this demo in. This setting needs to stay the same across all scripts run.\n"
+printf "       Using this flag can be avoided if AWS_DEFAULT_REGION is set as an environment variable where running this script\n"
+printf "   -d  This flag sets the CFT stack name for the stack in which all DMS resources are created.\n"
+printf "       This flag can be avoided if AWSDMS_CFSTACK_NAME is set as an environment variable.\n"
+printf "   -h  show help page.\n"
+
+}
+
+while getopts 's:r:d:h' flag; do
   case "${flag}" in
     s) AURORA_DB_CFSTACK_NAME="${OPTARG}" ;;
     r) AWS_DEFAULT_REGION="${OPTARG}" ;;
-    d) DMSRepforBlog="${OPTARG}" ;;
+    d) AWSDMS_CFSTACK_NAME="${OPTARG}" ;;
+    h) show_help='true' ;;
     *) error "Unexpected option ${flag}" ;;
   esac
 done
 
-# Check that region var is set
+if [[  $show_help == "true" ]]
+then
+    help
+    exit 0
+fi
+
 if [ -z $AURORA_DB_CFSTACK_NAME ]
 then
     printf "The AWS stack var isn't set. Please use -s to set this stack, and ensure it's already completed sucessfully.\n"
+    help
     exit 1
 else
     printf "The AWS Stack is set, continuing.\n"
@@ -23,15 +45,16 @@ fi
 if [ -z $AWS_DEFAULT_REGION ]
 then
     printf "The AWS default region var isn't set. Please use -r to set this stack.\n"
+    help
     exit 1
 else
     printf "The AWS default region is set, continuing.\n"
 fi
 
-# Check that DMS Stackname var is set
-if [ -z $DMSRepforBlog ]
+if [ -z $AWSDMS_CFSTACK_NAME ]
 then
     printf "The DMS resource stackname var isn't set. Please use -d to set this stack.\n"
+    help
     exit 1
 else
     printf "The DMS resource stackname is set, continuing.\n"
@@ -66,18 +89,16 @@ export TgtDBUsername="pgadmin"
 export TgtDBPassword="auradmin"
 
 
-aws cloudformation create-stack --stack-name $DMSRepforBlog --template-body file://dms.yaml --parameters ParameterKey=RepAllocatedStorage,ParameterValue=100 ParameterKey=RepMultiAZ,ParameterValue=false ParameterKey=RepSecurityGroup,ParameterValue=$RepSecurityGroup ParameterKey=ReplInstanceType,ParameterValue=dms.t3.medium ParameterKey=SrcDBUsername,ParameterValue=$SrcDBUsername ParameterKey=SrcDBPassword,ParameterValue=$SrcDBPassword ParameterKey=SrcDatabaseConnection,ParameterValue=$SrcRDSEndPoint ParameterKey=SrcEngineType,ParameterValue=aurora-postgresql ParameterKey=Subnets,ParameterValue="$SubnetID1 \, $SubnetID2" ParameterKey=TgtDBUsername,ParameterValue=$TgtDBUsername ParameterKey=TgtDBPassword,ParameterValue=$TgtDBPassword ParameterKey=TgtDatabaseConnection,ParameterValue=$TgtRDSEndPoint ParameterKey=TgtEngineType,ParameterValue=aurora-postgresql
+aws cloudformation create-stack --stack-name $AWSDMS_CFSTACK_NAME --template-body file://dms.yaml --parameters ParameterKey=RepAllocatedStorage,ParameterValue=100 ParameterKey=RepMultiAZ,ParameterValue=false ParameterKey=RepSecurityGroup,ParameterValue=$RepSecurityGroup ParameterKey=ReplInstanceType,ParameterValue=dms.t3.medium ParameterKey=SrcDBUsername,ParameterValue=$SrcDBUsername ParameterKey=SrcDBPassword,ParameterValue=$SrcDBPassword ParameterKey=SrcDatabaseConnection,ParameterValue=$SrcRDSEndPoint ParameterKey=SrcEngineType,ParameterValue=aurora-postgresql ParameterKey=Subnets,ParameterValue="$SubnetID1 \, $SubnetID2" ParameterKey=TgtDBUsername,ParameterValue=$TgtDBUsername ParameterKey=TgtDBPassword,ParameterValue=$TgtDBPassword ParameterKey=TgtDatabaseConnection,ParameterValue=$TgtRDSEndPoint ParameterKey=TgtEngineType,ParameterValue=aurora-postgresql
 
 STACK_STATUS=""
 while [ "$STACK_STATUS" != "CREATE_COMPLETE" ];
 do
   echo "waiting for stack to complete"
-  STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $DMSRepforBlog | jq -r '.Stacks[].StackStatus') 
+  STACK_STATUS=$(aws cloudformation describe-stacks --stack-name $AWSDMS_CFSTACK_NAME | jq -r '.Stacks[].StackStatus') 
   echo "$STACK_STATUS"
    sleep 60;
 done
-
-export AWSDMS_CFSTACK_NAME="$DMSRepforBlog"
 
 #Set variable to replication instance arn
 DMSREP_INSTANCE_ARN=$(aws cloudformation describe-stacks --stack-name $AWSDMS_CFSTACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey=="ReplicationInstanceArn") | .OutputValue')

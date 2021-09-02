@@ -1,19 +1,37 @@
 #!/bin/bash
 
-unset AWS_DEFAULT_REGION
+help () {
 
-while getopts 's:r:ch' flag; do
+printf "Script: 05-start-replication-task.sh \n"
+printf "Usage: 05-start-replication-task.sh [ -d ] [ -r ] [ -h ] \n"
+printf " -- \nWhere: \n"
+printf "   -d  This flag sets the CFT stack name for the stack in which all DMS resources are created.\n"
+printf "       This flag can be avoided if AWSDMS_CFSTACK_NAME is set as an environment variable.\n"
+printf "   -r  The AWS Region we're running this demo in. This setting needs to stay the same across all scripts run.\n"
+printf "       Using this flag can be avoided if AWS_DEFAULT_REGION is set as an environment variable where running this script\n"
+printf "   -h  show help page.\n"
+
+}
+
+while getopts 's:r:h' flag; do
   case "${flag}" in
-    s) AWSDMS_CFSTACK_NAME="${OPTARG}" ;;
+    d) AWSDMS_CFSTACK_NAME="${OPTARG}" ;;
     r) AWS_DEFAULT_REGION="${OPTARG}" ;;
+    h) show_help='true' ;;
     *) error "Unexpected option ${flag}" ;;
   esac
 done
 
-# Check that region var is set
+if [[  $show_help == "true" ]]
+then
+    help
+    exit 0
+fi
+
 if [ -z $AWSDMS_CFSTACK_NAME ]
 then
     printf "The AWS DMS stack var isn't set. Please use -s to set this stack, and ensure it's already completed sucessfully.\n"
+    help
     exit 1
 else
     printf "The AWS Stack is set, continuing.\n"
@@ -22,6 +40,7 @@ fi
 if [ -z $AWS_DEFAULT_REGION ]
 then
     printf "The AWS default region var isn't set. Please use -r to set this stack.\n"
+    help
     exit 1
 else
     printf "The AWS default region is set, continuing.\n"
