@@ -117,6 +117,8 @@ aws dms delete-endpoint --endpoint-arn $DB_SRC_ENDPOINT
 psql  postgres://$SrcDBUsername:$SrcDBPassword@$SrcRDSEndPoint -c "drop schema data_mart cascade;"
 psql  postgres://$SrcDBUsername:$SrcDBPassword@$SrcRDSEndPoint -c "drop schema data_mart_new cascade;"
 psql  postgres://$SrcDBUsername:$SrcDBPassword@$SrcRDSEndPoint -c "drop schema partman cascade;"
+psql  postgres://$SrcDBUsername:$SrcDBPassword@$SrcRDSEndPoint -c "drop schema data_mart_old cascade;"
+
 
 #delete DMS instance
-aws cloudformation delete-stack --stack-name DMSRepforBlog
+aws cloudformation delete-stack --stack-name $AWSDMS_CFSTACK_NAME
