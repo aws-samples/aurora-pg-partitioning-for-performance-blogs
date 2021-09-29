@@ -55,9 +55,11 @@ echo "DB stack name is:" $AURORA_DB_CFSTACK_NAME
 
 SrcRDSEndPoint=$(aws cloudformation describe-stacks --stack-name $AURORA_DB_CFSTACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey=="RDSEndPoint") | .OutputValue')
 TgtRDSEndPoint=$(aws cloudformation describe-stacks --stack-name $AURORA_DB_CFSTACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey=="RDSEndPoint") | .OutputValue')
+ClusterName=$(aws cloudformation describe-stacks --stack-name $AURORA_DB_CFSTACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey=="ClusterName") | .OutputValue')
 
 echo "RDS Source endpoint:" $SrcRDSEndPoint
 echo "RDS Destination endpoint" $TgtRDSEndPoint
+echo "RDS Cluster name" $ClusterName
 
 
 export SrcDBUsername="pgadmin"
@@ -71,7 +73,7 @@ SYNC_STATUS=""
 while [ "$SYNC_STATUS" != "in-sync" ];
 do
   echo "waiting for database to restart "
-  SYNC_STATUS=$(aws rds describe-db-clusters --db-cluster-identifier aurora-db | jq -r '.DBClusters[].DBClusterMembers[].DBClusterParameterGroupStatus')
+  SYNC_STATUS=$(aws rds describe-db-clusters --db-cluster-identifier $ClusterName | jq -r '.DBClusters[].DBClusterMembers[].DBClusterParameterGroupStatus')
   echo "Database Sync status is:" $SYNC_STATUS
   sleep 10;
 done

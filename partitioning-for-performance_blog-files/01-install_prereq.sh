@@ -66,10 +66,11 @@ sudo yum install postgresql12 -y
 echo "Enabling logical replication for your PostgeSQL Database"
  
 echo "DB stack name is:" $AURORA_DB_CFSTACK_NAME
+ClusterName=$(aws cloudformation describe-stacks --stack-name $AURORA_DB_CFSTACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey=="ClusterName") | .OutputValue')
 
 echo "Enabling logical replication..."
-CLUSTER_PARAM_GROUP=$(aws rds describe-db-clusters --db-cluster-identifier "aurora-db" | jq -r '.DBClusters[].DBClusterParameterGroup')
-DB_INSTANCE_IDENTIFIER=$(aws rds describe-db-clusters --db-cluster-identifier "aurora-db" | jq -r '.DBClusters[].DBClusterMembers[].DBInstanceIdentifier')
+CLUSTER_PARAM_GROUP=$(aws rds describe-db-clusters --db-cluster-identifier $ClusterName | jq -r '.DBClusters[].DBClusterParameterGroup')
+DB_INSTANCE_IDENTIFIER=$(aws rds describe-db-clusters --db-cluster-identifier $ClusterName | jq -r '.DBClusters[].DBClusterMembers[].DBInstanceIdentifier')
 
 aws rds modify-db-cluster-parameter-group --db-cluster-parameter-group-name $CLUSTER_PARAM_GROUP --parameters "ParameterName=rds.logical_replication,ParameterValue=1,ApplyMethod=pending-reboot"
 

@@ -27,6 +27,8 @@ Metadata:
       DBEngineVersion:
         default: Source Database Engine Version
 Outputs: 
+  ClusterName:
+    Value: !Ref DBClusterName
   StackName:
     Value: !Ref 'AWS::StackName'
   Regionname:

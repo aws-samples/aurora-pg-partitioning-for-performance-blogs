@@ -11,7 +11,7 @@ CREATE TABLE data_mart.events(
         parent_event_id BIGINT, 
         event_type      VARCHAR(25), 
         org_id          BIGSERIAL, 
-        created_at      timestamp, 
+        created_at      timestamptz, 
         CONSTRAINT pk_data_mart_event PRIMARY KEY (event_id, created_at), 
         CONSTRAINT ck_valid_operation CHECK (operation = 'C' OR operation = 'D'), 
         CONSTRAINT fk_orga_membership 
