@@ -1,39 +1,86 @@
-## 
+# Partitioning for Performance
 
 
-Setup Instructions:
+## Overview
+Purpose of this lab is provide you step-by-step guide instructions to split large table in PostgreSQL into multiple manageable partitioned tables with minimal downtime.
 
-1. Run CloudFormation db.yaml to create Aurora database in private VPC
-2. Go to output of Cloudformation and click to Connect to Cloud 9 instance
+Solution utilizes AWS Database Migration Service (DMS) to read data from source (non-partitioned table) and replicate into partitioned table in the same database.
+
+
+## Setup Instructions:
+
+ 1. Run CloudFormation (CF) db.yaml to create Aurora Database in private VPC,
+    following resources will be created.
+	
+	- VPC 
+	- Private/Public subnet and related resources 
+	- Aurora DB in Private subnet
+2. Connect to Cloud 9 instance, created by CF
 3. Checkout this repo in Cloud 9 to get script and data for the demo
-4. Run the following script in this order to setup sample database and partition the table
+4. Run scripts provided to simulate end to end process to split table into partitioned table
 
-    #export following environment variable, alternatively you can pass argument to the script
+	
+Export following environment variable, alternatively you can pass argument to the script
 
-    export AURORA_DB_CFSTACK_NAME=mydb
-    export AWS_DEFAULT_REGION=us-east-1
+```sh
+export AURORA_DB_CFSTACK_NAME=mydb
+export AWS_DEFAULT_REGION=us-east-1
+```
 
-    1. 1-install_prereq.sh: This will install psql client and jq
-    2. 2-db-bootstrap.sh: This script will install schema and load sample data
-    3. 3-create-partitoned-table.sh:  This script will create Partitioned table in new schema (data_mart_new)
-    4. export AWSDMS_CFSTACK_NAME=mydms; 4-setup_dms.sh: This will setup DMS instance/configure endpoint and create a task
-    5. 5-start-replication-task.sh: This script will start replication task to move data from data_mart.events to data_mart_new.events ( which is partitioned table )
-    6. 6-verify-count.sh: This script will display count of data from source and destination table
-    7. 7-create-index.sh: This script will create post full load index creation 
 
-    At this point, you have data in sync between source and destination schema. Next you need to swap the table to switch to Partitioned table. (this process will require brief outage)
+Step1:    This will install psql client and jq
+```sh
+./1-install_prereq.sh 
+```
+Step2:   This script will create database schema data_mart with two table, events and organization and load sample data. events table will be large table, we will be partitioning.
+```sh
+./2-db-bootstrap.sh 
+```
+Step3:  This script will create Partitioned table under new schema data_mart_new
+```
+```sh
+./3-create-partitoned-table.sh
+``` 
 
-    Ensure application writing to this table is down 
+Step4: This will setup DMS instance/configure endpoint and create replication task
+```sh
+AWSDMS_CFSTACK_NAME=mydms; # this is the name of the DMS stack
+./4-setup_dms.sh
+```
+Step5: This script will start replication task to move data from data_mart.events to data_mart_new.events ( which is partitioned table )
+```sh
+./5-start-replication-task.sh
+```
+Step6: This script will display count of data from source and destination table
+```sh
+./6-verify-count.sh 
+```
+Step7: This script will create post full load index creation on a partitioned table
+```sh
+./7-create-index.sh
+```
+At this point, you have data in sync between source and destination schema. Next you need to swap the table to switch to Partitioned table. (this process will require brief outage)
 
-1. 8-stop-replication-task.sh: once replication is caught up, stop replication task
-2. 9-swap_table.sh : use this script to swap table 
-3. 10-disable-logical-replication.sh : use this script to disable logical replication
+***Ensure application writing to this table is down before the next step**
 
-Cleanup:
-
-1. on Cloud9, run 11-cleanup.sh to remove dms instance and cloudformation
-2. on Cloudformation console, delete database cloudformation to remove database and other VPC related objects
-
+Step8: Once replication is caught up, stop replication task
+```sh
+./8-stop-replication-task.sh
+```
+Step9: Use this script to swap table
+```sh
+./9-swap_table.sh 
+```
+Step10:  Use this script to disable logical replication
+```sh
+./10-disable-logical-replication.sh
+```
+## Cleanup
+Step1:  Cloud9, run 11-cleanup.sh to remove DMS instance and related resources
+```sh
+./11-cleanup.sh
+```
+Step2:  On CloudFormation console, delete database cloudformation to remove database and other VPC related objects
 
 ## Security
 
