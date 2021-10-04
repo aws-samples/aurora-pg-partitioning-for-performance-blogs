@@ -37,7 +37,6 @@ Step2:   This script will create database schema data_mart with two table, event
 bash 02-db-bootstrap.sh 
 ```
 Step3:  This script will create Partitioned table under new schema data_mart_new
-```
 ```sh
 bash 03-create-partitoned-table.sh
 ``` 
