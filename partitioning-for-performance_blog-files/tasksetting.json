@@ -105,7 +105,7 @@
                 "Id": "FILE_TRANSFER",
                 "Severity": "LOGGER_SEVERITY_DEFAULT"
             }
-        ],
+        ]
     },
     "ControlTablesSettings": {
         "historyTimeslotInMinutes": 5,
